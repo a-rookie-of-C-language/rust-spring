@@ -1,0 +1,10 @@
+[package]
+name = "spring-beans"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+
+[dependencies]
+# spring-beans 是最底层模块，不依赖其他 spring 模块

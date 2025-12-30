@@ -1,0 +1,19 @@
+[workspace] 
+members = [ 
+    "spring-core", 
+    "spring-beans", 
+    "spring-context", 
+    "spring-aop", 
+    "spring-expression", 
+    "spring-util", 
+    "spring-macro"
+, "example", "spring-boot"] 
+[workspace.package] 
+version = "0.1.0" 
+edition = "2021" 
+authors = ["Your Name ^<your@email.com^>"] 
+description = "Rust implementation of Spring-like IoC container" 
+license = "MIT" 
+
+[dependencis]
+ctor=0.2

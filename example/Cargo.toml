@@ -1,0 +1,14 @@
+[package]
+name = "example"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+
+[dependencies]
+spring-macro = { path = "../spring-macro" }
+spring-beans = { path = "../spring-beans" }
+spring-core = { path = "../spring-core" }
+spring-context = { path = "../spring-context" }
+ctor = "0.2"
