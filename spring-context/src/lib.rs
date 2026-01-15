@@ -3,5 +3,4 @@ pub mod context;
 pub mod scanner;
 
 // 重新导出核心类型
-pub use context::{ApplicationContext, DefaultApplicationContext};
 pub use scanner::component_registry;

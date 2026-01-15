@@ -53,4 +53,11 @@ impl Application{
         default
     }
 
+    fn refresh_context(&self,context: &mut ConfigurableApplicationContext){
+        if self.shutdown_hook.is_registered() == false{
+            self.shutdown_hook.register(context);
+        }
+        self::refresh(context);
+    }
+
 }

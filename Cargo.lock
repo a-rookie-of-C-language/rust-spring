@@ -79,6 +79,7 @@ dependencies = [
  "ctor",
  "proc-macro2",
  "quote",
+ "spring-util",
  "syn",
 ]
 
