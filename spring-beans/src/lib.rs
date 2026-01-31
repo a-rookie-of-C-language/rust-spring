@@ -1,8 +1,5 @@
-
 pub mod bean;
+pub mod factory;
 pub mod error;
-
-pub use bean::{BeanDefinition, BeanScope, Component};
-
 
 

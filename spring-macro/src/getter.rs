@@ -1,0 +1,35 @@
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::parse_macro_input;
+use syn::{Fields, ItemStruct};
+
+use crate::accessors::build_getter_methods;
+pub fn getter_impl(_attribute: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as ItemStruct);
+    match expand_getter(&input) {
+        Ok(tokens) => tokens.into(),
+        Err(err) => err.to_compile_error().into(),
+    }
+}
+
+fn expand_getter(input: &ItemStruct) -> syn::Result<proc_macro2::TokenStream> {
+    let name = &input.ident;
+    let fields = match &input.fields {
+        Fields::Named(fields) => &fields.named,
+        _ => {
+            return Err(syn::Error::new_spanned(
+                input,
+                "Getter only supports named fields",
+            ))
+        }
+    };
+    let methods = build_getter_methods(fields)?;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    Ok(quote! {
+        #input
+
+        impl #impl_generics #name #ty_generics #where_clause {
+            #(#methods)*
+        }
+    })
+}

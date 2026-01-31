@@ -8,3 +8,4 @@ license.workspace = true
 
 [dependencies]
 spring-beans = { path = "../spring-beans" }
+spring-macro = {path="../spring-macro"}

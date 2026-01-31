@@ -1,0 +1,101 @@
+use crate::context::configurable_application_context::ConfigurableApplicationContext;
+use spring_beans::factory::{BeanFactory, BeanDefinitionRegistry, DefaultListableBeanFactory};
+use spring_beans::factory::config::{BeanDefinition, ConfigurableBeanFactory};
+use crate::context::application_context::ApplicationContext;
+use crate::context::lifecycle::{Lifecycle};
+use spring_macro::data;
+
+#[data]
+pub struct AbstractApplicationContext {
+    bean_factory: DefaultListableBeanFactory,
+}
+
+impl ConfigurableApplicationContext for AbstractApplicationContext {
+   fn refresh(&mut self) {
+       let names = self.bean_factory.get_bean_definition_names().clone();
+       for name in names {
+           if let Some(definition) = self.bean_factory.get_bean_definition(&name) {
+               if !definition.is_lazy_init() {
+                   self.bean_factory.do_create_bean(&name);
+               }
+           }
+       }
+   }
+
+   fn close(&mut self) {
+       self.bean_factory.destroy_singletons();
+   }
+
+   fn is_active(&self) -> bool {
+       true
+   }
+
+}
+
+impl Lifecycle for AbstractApplicationContext {
+    fn start(&mut self) {
+    }
+
+    fn stop(&mut self) {
+    }
+
+    fn is_running(&self) -> bool {
+        true
+    }
+}
+
+impl ApplicationContext for AbstractApplicationContext {
+   fn contains_bean(&self, name: &str) -> bool {
+       self.bean_factory.contains_bean(name)
+   }
+
+   fn do_create_bean(&mut self, name: &str) -> Option<&dyn std::any::Any> {
+       self.bean_factory.do_create_bean(name)
+   }
+
+   fn get_bean(&self, name: &str) -> Option<&dyn std::any::Any> {
+       self.bean_factory.get_bean(name)
+   }
+
+   fn is_singleton(&self, name: &str) -> bool {
+       self.bean_factory.is_singleton(name)
+   }
+}
+
+impl BeanDefinitionRegistry for AbstractApplicationContext {
+    fn register_bean_definition(&mut self, name: &str, bean_definition: Box<dyn BeanDefinition>) {
+        self.bean_factory.register_bean_definition(name, bean_definition);
+    }
+
+    fn remove_bean_definition(&mut self, bean_name: &str) {
+        self.bean_factory.remove_bean_definition(bean_name);
+    }
+
+    fn contains_bean_definition(&self, bean_name: &str) -> bool {
+        self.bean_factory.contains_bean_definition(bean_name)
+    }
+
+    fn get_bean_definition(&self, bean_name: &str) -> Option<&Box<dyn BeanDefinition>> {
+        self.bean_factory.get_bean_definition(bean_name)
+    }
+
+    fn get_bean_definition_names(&self) -> &Vec<String> {
+        self.bean_factory.get_bean_definition_names()
+    }
+
+    fn get_bean_definition_count(&self) -> usize {
+        self.bean_factory.get_bean_definition_count()
+    }
+
+    fn is_bean_name_in_use(&self, bean_name: &str) -> bool {
+        self.bean_factory.is_bean_name_in_use(bean_name)
+    }
+}
+
+impl Default for AbstractApplicationContext {
+    fn default() -> Self {
+        Self {
+            bean_factory: DefaultListableBeanFactory::new(),
+        }
+    }
+}

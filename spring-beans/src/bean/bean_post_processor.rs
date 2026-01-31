@@ -5,7 +5,6 @@ pub trait BeanPostProcessor {
         0
     }
 }
-
 pub struct DefaultBeanPostProcessor{
 
 }

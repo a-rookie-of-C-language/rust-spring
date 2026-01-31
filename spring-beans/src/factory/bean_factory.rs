@@ -4,4 +4,3 @@ pub trait BeanFactory {
     fn contains_bean(&self, name: &str) -> bool;
     fn do_create_bean(&mut self, name: &str) -> Option<&dyn std::any::Any>;
 }
-

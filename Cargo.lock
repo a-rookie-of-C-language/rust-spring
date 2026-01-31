@@ -48,6 +48,9 @@ version = "0.1.0"
 [[package]]
 name = "spring-beans"
 version = "0.1.0"
+dependencies = [
+ "spring-macro",
+]
 
 [[package]]
 name = "spring-boot"
@@ -59,6 +62,7 @@ version = "0.1.0"
 dependencies = [
  "spring-beans",
  "spring-core",
+ "spring-macro",
 ]
 
 [[package]]
@@ -66,6 +70,7 @@ name = "spring-core"
 version = "0.1.0"
 dependencies = [
  "spring-beans",
+ "spring-macro",
 ]
 
 [[package]]

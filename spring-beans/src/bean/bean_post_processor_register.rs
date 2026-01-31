@@ -1,8 +1,10 @@
-pub struct bean_post_processor_registry{
+use crate::bean::bean_post_processor::BeanPostProcessor;
+
+pub struct BeanPostProcessorRegistry {
     processors: Vec<Box<dyn BeanPostProcessor>>,
 }
 
-impl bean_post_processor_registry {
+impl BeanPostProcessorRegistry {
     pub fn new() -> Self {
         Self {
             processors: Vec::new(),
