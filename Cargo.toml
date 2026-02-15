@@ -15,5 +15,5 @@ authors = ["Your Name ^<your@email.com^>"]
 description = "Rust implementation of Spring-like IoC container" 
 license = "MIT" 
 
-[dependencis]
+[dependencies]
 ctor=0.2
