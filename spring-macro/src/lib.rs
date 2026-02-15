@@ -13,6 +13,11 @@ pub fn component(attribute: TokenStream, item: TokenStream) -> TokenStream {
     component::component_impl(attribute, item)
 }
 
+#[proc_macro_derive(Component, attributes(autowired))]
+pub fn component_derive(item: TokenStream) -> TokenStream {
+    component::component_derive_impl(item)
+}
+
 #[proc_macro_attribute]
 pub fn data(attribute: TokenStream, item: TokenStream) -> TokenStream {
     data::data_impl(attribute, item)

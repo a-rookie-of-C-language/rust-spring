@@ -1,33 +1,37 @@
-use std::any::TypeId;
 use spring_beans::factory::BeanDefinitionRegistry;
-use spring_beans::factory::config::RootBeanDefinition;
 use spring_context::context::application_context::ApplicationContext;
 use spring_context::context::ConfigurableApplicationContext;
 use spring_context::context::support::AbstractApplicationContext;
-use spring_macro::{data, no_arg_constructor, all_args_constructor};
+use spring_macro::Component;
 
-#[data]
-#[no_arg_constructor]
-#[all_args_constructor]
-#[derive(Debug)]
+#[derive(Component, Debug)]
+#[derive(Default)]
+struct Person {
+    id: i32,
+    name: String,
+}
+
+#[derive(Component, Debug)]
 #[derive(Default)]
 struct User {
+    #[autowired]
+    person: Person,
     id: i32,
     name: String,
 }
 
 fn main() {
     let mut context = AbstractApplicationContext::default();
-    let definition = RootBeanDefinition::new(
-        "user".to_string(),
-        TypeId::of::<User>(),
-        "singleton".to_string(),
-        false,
-        Vec::new(),
-        Box::new(|| Box::new(User::new(1, "test".to_string()))),
-    );
-    context.register_bean_definition("user", Box::new(definition));
+    context.register_bean_definition(Person::bean_name(), Box::new(Person::bean_definition()));
+    context.register_bean_definition(User::bean_name(), Box::new(User::bean_definition()));
+
     context.refresh();
+
+    if let Some(bean) = context.get_bean("person") {
+        if let Some(person) = bean.downcast_ref::<Person>() {
+            println!("{:?}", person);
+        }
+    }
 
     if let Some(bean) = context.get_bean("user") {
         if let Some(user) = bean.downcast_ref::<User>() {
@@ -35,6 +39,6 @@ fn main() {
         }
     }
 
-    let user_default = User::new_no_args();
+    let user_default = User::default();
     println!("{:?}", user_default);
 }

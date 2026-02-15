@@ -7,4 +7,5 @@ pub trait BeanDefinition {
     fn get_type_id(&self) -> std::any::TypeId;
     fn has_annotation(&self, annotation: &str) -> bool;
     fn create_instance(&self) -> Box<dyn std::any::Any>;
+    fn get_dependencies(&self) -> Vec<String>;
 }

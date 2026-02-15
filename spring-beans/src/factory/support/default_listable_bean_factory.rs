@@ -78,9 +78,20 @@ impl BeanFactory for DefaultListableBeanFactory {
         if self.early_singleton_objects.contains_key(name) {
             return self.early_singleton_objects.get(name).map(|boxed| boxed.as_ref());
         }
-        let definition = self.bean_definition_map.get(name)?;
-        let scope = definition.get_scope().to_string();
-        let instance = definition.create_instance();
+        let (dependencies, scope) = {
+            let definition = self.bean_definition_map.get(name)?;
+            (definition.get_dependencies(), definition.get_scope().to_string())
+        };
+        for dep in dependencies {
+            if self.currently_in_creation.contains(&dep) {
+                panic!("Circular dependency detected: {} -> {}", name, dep);
+            }
+            self.do_create_bean(&dep);
+        }
+        let instance = {
+            let definition = self.bean_definition_map.get(name)?;
+            definition.create_instance()
+        };
         if scope.eq_ignore_ascii_case("singleton") {
             self.singleton_objects.insert(name.to_string(), instance);
             return self.singleton_objects.get(name).map(|boxed| boxed.as_ref());

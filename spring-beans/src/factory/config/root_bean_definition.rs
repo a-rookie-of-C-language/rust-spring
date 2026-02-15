@@ -46,4 +46,8 @@ impl BeanDefinition for RootBeanDefinition {
     fn create_instance(&self) -> Box<dyn Any> {
         (self.supplier)()
     }
+
+    fn get_dependencies(&self) -> Vec<String> {
+        self.dependencies.clone()
+    }
 }
