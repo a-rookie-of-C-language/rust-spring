@@ -75,16 +75,18 @@ impl BeanFactory for DefaultListableBeanFactory {
     }
 
     fn do_create_bean(&mut self, name: &str) -> Option<&dyn std::any::Any> {
-        if self.singleton_objects.contains_key(name) {
-            return self.singleton_objects.get(name).map(|boxed| boxed.as_ref());
-        }
-        if self.early_singleton_objects.contains_key(name) {
-            return self.early_singleton_objects.get(name).map(|boxed| boxed.as_ref());
-        }
         let (dependencies, scope) = {
             let definition = self.bean_definition_map.get(name)?;
             (definition.get_dependencies(), definition.get_scope())
         };
+        if scope == BeanScope::Singleton {
+            if self.singleton_objects.contains_key(name) {
+                return self.singleton_objects.get(name).map(|boxed| boxed.as_ref());
+            }
+            if self.early_singleton_objects.contains_key(name) {
+                return self.early_singleton_objects.get(name).map(|boxed| boxed.as_ref());
+            }
+        }
         for dep in dependencies {
             if self.currently_in_creation.contains(&dep) {
                 panic!("Circular dependency detected: {} -> {}", name, dep);
