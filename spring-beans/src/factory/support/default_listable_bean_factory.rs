@@ -2,7 +2,7 @@ use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use spring_macro::data;
 use crate::factory::BeanDefinitionRegistry;
-use crate::factory::config::{BeanDefinition, ConfigurableBeanFactory};
+use crate::factory::config::{BeanDefinition, BeanScope, ConfigurableBeanFactory};
 use crate::factory::BeanFactory;
 use crate::factory::listable_bean_factory::ListableBeanFactory;
 
@@ -62,7 +62,10 @@ impl BeanFactory for DefaultListableBeanFactory {
     }
 
     fn is_singleton(&self, name: &str) -> bool {
-        self.singleton_objects.contains_key(name)
+        self.bean_definition_map
+            .get(name)
+            .map(|definition| definition.get_scope() == BeanScope::Singleton)
+            .unwrap_or_else(|| self.singleton_objects.contains_key(name))
     }
 
     fn contains_bean(&self, name: &str) -> bool {
@@ -80,7 +83,7 @@ impl BeanFactory for DefaultListableBeanFactory {
         }
         let (dependencies, scope) = {
             let definition = self.bean_definition_map.get(name)?;
-            (definition.get_dependencies(), definition.get_scope().to_string())
+            (definition.get_dependencies(), definition.get_scope())
         };
         for dep in dependencies {
             if self.currently_in_creation.contains(&dep) {
@@ -92,12 +95,16 @@ impl BeanFactory for DefaultListableBeanFactory {
             let definition = self.bean_definition_map.get(name)?;
             definition.create_instance()
         };
-        if scope.eq_ignore_ascii_case("singleton") {
-            self.singleton_objects.insert(name.to_string(), instance);
-            return self.singleton_objects.get(name).map(|boxed| boxed.as_ref());
+        match scope {
+            BeanScope::Singleton => {
+                self.singleton_objects.insert(name.to_string(), instance);
+                self.singleton_objects.get(name).map(|boxed| boxed.as_ref())
+            }
+            BeanScope::Prototype => {
+                self.early_singleton_objects.insert(name.to_string(), instance);
+                self.early_singleton_objects.get(name).map(|boxed| boxed.as_ref())
+            }
         }
-        self.early_singleton_objects.insert(name.to_string(), instance);
-        self.early_singleton_objects.get(name).map(|boxed| boxed.as_ref())
     }
 }
 

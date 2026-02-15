@@ -1,6 +1,6 @@
 use crate::context::configurable_application_context::ConfigurableApplicationContext;
 use spring_beans::factory::{BeanFactory, BeanDefinitionRegistry, DefaultListableBeanFactory};
-use spring_beans::factory::config::{BeanDefinition, ConfigurableBeanFactory};
+use spring_beans::factory::config::{BeanDefinition, BeanScope, ConfigurableBeanFactory};
 use crate::context::application_context::ApplicationContext;
 use crate::context::lifecycle::{Lifecycle};
 use spring_macro::data;
@@ -15,7 +15,7 @@ impl ConfigurableApplicationContext for AbstractApplicationContext {
        let names = self.bean_factory.get_bean_definition_names().clone();
        for name in names {
            if let Some(definition) = self.bean_factory.get_bean_definition(&name) {
-               if !definition.is_lazy_init() {
+               if !definition.is_lazy_init() && definition.get_scope() == BeanScope::Singleton {
                    self.bean_factory.do_create_bean(&name);
                }
            }

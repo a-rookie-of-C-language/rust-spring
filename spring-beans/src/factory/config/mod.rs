@@ -4,7 +4,7 @@ pub mod configurable_bean_factory;
 pub mod configurable_listable_bean_factory;
 pub mod root_bean_definition;
 pub use autowire_capable_bean_factory::AutowireCapableBeanFactory;
-pub use bean_definition::BeanDefinition;
+pub use bean_definition::{BeanDefinition, BeanScope};
 pub use configurable_bean_factory::ConfigurableBeanFactory;
 pub use configurable_listable_bean_factory::ConfigurableListableBeanFactory;
 pub use root_bean_definition::RootBeanDefinition;

@@ -16,7 +16,11 @@ pub fn component_impl(attribute: TokenStream, item: TokenStream) -> TokenStream 
     let scope = args.scope.unwrap_or_else(|| "singleton".to_string());
     let lazy = args.lazy.unwrap_or(false);
     let name_lit = LitStr::new(&name, Span::call_site());
-    let scope_lit = LitStr::new(&scope, Span::call_site());
+    let scope_token = match scope.as_str() {
+        "singleton" => quote! { spring_beans::factory::config::BeanScope::Singleton },
+        "prototype" => quote! { spring_beans::factory::config::BeanScope::Prototype },
+        _ => return syn::Error::new_spanned(&input, "scope must be \"singleton\" or \"prototype\"").to_compile_error().into(),
+    };
     let deps_list = if !args.deps.is_empty() {
         args.deps
     } else if args.autowire.unwrap_or(false) {
@@ -38,7 +42,7 @@ pub fn component_impl(attribute: TokenStream, item: TokenStream) -> TokenStream 
                 spring_beans::factory::config::RootBeanDefinition::new(
                     #name_lit.to_string(),
                     std::any::TypeId::of::<#ident>(),
-                    #scope_lit.to_string(),
+                    #scope_token,
                     #lazy,
                     vec![#(#deps.to_string()),*],
                     Box::new(|| Box::new(#ident::default())),
@@ -69,7 +73,7 @@ pub fn component_derive_impl(item: TokenStream) -> TokenStream {
                 spring_beans::factory::config::RootBeanDefinition::new(
                     #name_lit.to_string(),
                     std::any::TypeId::of::<#ident>(),
-                    "singleton".to_string(),
+                    spring_beans::factory::config::BeanScope::Singleton,
                     false,
                     vec![#(#deps.to_string()),*],
                     Box::new(|| Box::new(#ident::default())),

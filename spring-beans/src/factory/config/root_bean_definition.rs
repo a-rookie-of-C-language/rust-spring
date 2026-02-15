@@ -1,13 +1,13 @@
 use std::any::{Any, TypeId};
 use spring_macro::{all_args_constructor, data};
-use super::bean_definition::BeanDefinition;
+use super::bean_definition::{BeanDefinition, BeanScope};
 
 #[data]
 #[all_args_constructor]
 pub struct RootBeanDefinition {
     name: String,
     type_id: TypeId,
-    scope: String,
+    scope: BeanScope,
     is_lazy: bool,
     dependencies: Vec<String>,
     supplier: Box<dyn Fn() -> Box<dyn Any>>,
@@ -19,12 +19,12 @@ impl BeanDefinition for RootBeanDefinition {
         &self.name
     }
 
-    fn set_scope(&mut self, scope: &str) {
-        self.scope = scope.to_string();
+    fn set_scope(&mut self, scope: BeanScope) {
+        self.scope = scope;
     }
 
-    fn get_scope(&self) -> &str {
-        &self.scope
+    fn get_scope(&self) -> BeanScope {
+        self.scope
     }
 
     fn is_lazy_init(&self) -> bool {
