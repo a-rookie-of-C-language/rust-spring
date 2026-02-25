@@ -10,7 +10,7 @@ pub struct RootBeanDefinition {
     scope: BeanScope,
     is_lazy: bool,
     dependencies: Vec<String>,
-    supplier: Box<dyn Fn() -> Box<dyn Any>>,
+    supplier: Box<dyn Fn(&std::collections::HashMap<String, Box<dyn Any>>, &std::collections::HashMap<String, String>) -> Box<dyn Any>>,
 }
 
 
@@ -43,8 +43,8 @@ impl BeanDefinition for RootBeanDefinition {
         annotation == "RootBeanDefinition"
     }
 
-    fn create_instance(&self) -> Box<dyn Any> {
-        (self.supplier)()
+    fn create_instance(&self, resolved_deps: &std::collections::HashMap<String, Box<dyn Any>>, env: &std::collections::HashMap<String, String>) -> Box<dyn Any> {
+        (self.supplier)(resolved_deps, env)
     }
 
     fn get_dependencies(&self) -> Vec<String> {

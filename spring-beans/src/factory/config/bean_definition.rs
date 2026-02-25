@@ -12,6 +12,6 @@ pub trait BeanDefinition {
     fn set_lazy_init(&mut self, lazy: bool);
     fn get_type_id(&self) -> std::any::TypeId;
     fn has_annotation(&self, annotation: &str) -> bool;
-    fn create_instance(&self) -> Box<dyn std::any::Any>;
+    fn create_instance(&self, resolved_deps: &std::collections::HashMap<String, Box<dyn std::any::Any>>, env: &std::collections::HashMap<String, String>) -> Box<dyn std::any::Any>;
     fn get_dependencies(&self) -> Vec<String>;
 }

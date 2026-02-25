@@ -7,3 +7,7 @@ description.workspace = true
 license.workspace = true
 
 [dependencies]
+spring-context = { path = "../spring-context" }
+spring-beans   = { path = "../spring-beans"   }
+spring-macro   = { path = "../spring-macro"   }
+inventory      = { workspace = true }

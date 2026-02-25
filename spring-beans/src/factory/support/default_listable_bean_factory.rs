@@ -1,5 +1,7 @@
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
+use crate::bean::bean_post_processor_register::BeanPostProcessorRegistry;
+use crate::env::Environment;
 use spring_macro::data;
 use crate::factory::BeanDefinitionRegistry;
 use crate::factory::config::{BeanDefinition, BeanScope, ConfigurableBeanFactory};
@@ -14,6 +16,8 @@ pub struct DefaultListableBeanFactory {
     early_singleton_objects: HashMap<String, Box<dyn Any>>,
     singleton_factories: HashMap<String, Box<dyn Fn() -> Box<dyn Any>>>,
     currently_in_creation: HashSet<String>,
+    post_processor_registry: BeanPostProcessorRegistry,
+    environment: Environment,
 }
 
 impl BeanDefinitionRegistry for DefaultListableBeanFactory {
@@ -36,7 +40,6 @@ impl BeanDefinitionRegistry for DefaultListableBeanFactory {
     fn is_bean_name_in_use(&self, bean_name: &str) -> bool {
         BeanDefinitionRegistry::contains_bean_definition(self, bean_name)
             || self.singleton_objects.contains_key(bean_name)
-            || self.early_singleton_objects.contains_key(bean_name)
             || self.singleton_factories.contains_key(bean_name)
             || self.currently_in_creation.contains(bean_name)
     }
@@ -57,7 +60,6 @@ impl BeanFactory for DefaultListableBeanFactory {
     fn get_bean(&self, name: &str) -> Option<&dyn Any> {
         self.singleton_objects
             .get(name)
-            .or_else(|| self.early_singleton_objects.get(name))
             .map(|boxed| boxed.as_ref())
     }
 
@@ -71,7 +73,6 @@ impl BeanFactory for DefaultListableBeanFactory {
     fn contains_bean(&self, name: &str) -> bool {
         self.bean_definition_map.contains_key(name)
             || self.singleton_objects.contains_key(name)
-            || self.early_singleton_objects.contains_key(name)
     }
 
     fn do_create_bean(&mut self, name: &str) -> Option<&dyn std::any::Any> {
@@ -79,38 +80,54 @@ impl BeanFactory for DefaultListableBeanFactory {
             let definition = self.bean_definition_map.get(name)?;
             (definition.get_dependencies(), definition.get_scope())
         };
+        // 如果是 Singleton 且已创建，直接返回缓存
         if scope == BeanScope::Singleton {
             if self.singleton_objects.contains_key(name) {
-                return self.singleton_objects.get(name).map(|boxed| boxed.as_ref());
-            }
-            if self.early_singleton_objects.contains_key(name) {
-                return self.early_singleton_objects.get(name).map(|boxed| boxed.as_ref());
+                return self.singleton_objects.get(name).map(|b| b.as_ref());
             }
         }
-        for dep in dependencies {
-            if self.currently_in_creation.contains(&dep) {
+        // 先递归创建所有依赖
+        for dep in &dependencies {
+            if self.currently_in_creation.contains(dep) {
                 panic!("Circular dependency detected: {} -> {}", name, dep);
             }
-            self.do_create_bean(&dep);
+            self.do_create_bean(dep);
         }
-        let instance = {
+        // 从 singleton_objects 收集依赖快照（拷贝其中的引用信息，实际指针仔然存于容器）
+        // 注意： supplier 闭包通过 &HashMap 读取依赖，调用 downcast_ref + clone 进行字段注入
+        let mut instance: Box<dyn Any> = {
+            // 临时收集依赖的引用 map，内容仅包含该 bean 声明的依赖项
+            let deps_snapshot: std::collections::HashMap<String, Box<dyn Any>> = dependencies
+                .iter()
+                .filter_map(|dep_name| {
+                    // 将依赖从容器暂时移出，供 supplier 闭包使用
+                    self.singleton_objects.remove(dep_name).map(|b| (dep_name.clone(), b))
+                })
+                .collect();
             let definition = self.bean_definition_map.get(name)?;
-            definition.create_instance()
+            let inst = definition.create_instance(&deps_snapshot, &self.environment.as_map());
+            // 将依赖放回容器
+            for (dep_name, dep_bean) in deps_snapshot {
+                self.singleton_objects.insert(dep_name, dep_bean);
+            }
+            inst
         };
+        // BeanPostProcessor: before initialization
+        self.post_processor_registry.apply_before_initialization(name, instance.as_mut());
+        // BeanPostProcessor: after initialization
+        self.post_processor_registry.apply_after_initialization(name, instance.as_mut());
         match scope {
             BeanScope::Singleton => {
                 self.singleton_objects.insert(name.to_string(), instance);
-                self.singleton_objects.get(name).map(|boxed| boxed.as_ref())
+                self.singleton_objects.get(name).map(|b| b.as_ref())
             }
             BeanScope::Prototype => {
-                self.early_singleton_objects.insert(name.to_string(), instance);
-                self.early_singleton_objects.get(name).map(|boxed| boxed.as_ref())
+                // Prototype 不缓存，每次调用都创建新实例
+                None
             }
         }
     }
-}
-
-
+}  // impl BeanFactory
 impl ConfigurableBeanFactory for DefaultListableBeanFactory {
     fn register_singleton(&mut self, bean_name: &str, singleton_object: Box<dyn Any>) {
         self.singleton_objects
@@ -174,10 +191,16 @@ impl DefaultListableBeanFactory {
             early_singleton_objects: HashMap::new(),
             singleton_factories: HashMap::new(),
             currently_in_creation: HashSet::new(),
+            post_processor_registry: BeanPostProcessorRegistry::new(),
+            environment: Environment::new(),
         }
-    }
 }
 
+    pub fn register_post_processor(&mut self, processor: Box<dyn crate::bean::bean_post_processor::BeanPostProcessor>) {
+        self.post_processor_registry.register(processor);
+    }
+
+}
 impl Default for DefaultListableBeanFactory {
     fn default() -> Self {
         Self::new()

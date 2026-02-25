@@ -1,14 +1,10 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub mod application;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub use application::Application;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+// Re-export all proc-macros so users only need `spring-boot` as a dependency.
+pub use spring_macro::{Bean, Component, Lazy, Scope, Value};
+
+// Re-export the ApplicationContext trait so users can call get_bean / do_create_bean
+// without importing spring_context directly.
+pub use spring_context::context::application_context::ApplicationContext;

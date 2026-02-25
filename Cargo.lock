@@ -3,24 +3,27 @@
 version = 4
 
 [[package]]
-name = "ctor"
-version = "0.2.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32a2785755761f3ddc1492979ce1e48d2c00d09311c39e4466429188f3dd6501"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
 name = "example"
 version = "0.1.0"
 dependencies = [
- "ctor",
+ "inventory",
  "spring-beans",
+ "spring-boot",
  "spring-context",
- "spring-core",
  "spring-macro",
+]
+
+[[package]]
+name = "initializer"
+version = "0.1.0"
+
+[[package]]
+name = "inventory"
+version = "0.3.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "009ae045c87e7082cb72dab0ccd01ae075dd00141ddc108f43a0ea150a9e7227"
+dependencies = [
+ "rustversion",
 ]
 
 [[package]]
@@ -42,6 +45,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustversion"
+version = "1.0.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
+
+[[package]]
 name = "spring-aop"
 version = "0.1.0"
 
@@ -49,12 +58,19 @@ version = "0.1.0"
 name = "spring-beans"
 version = "0.1.0"
 dependencies = [
+ "inventory",
  "spring-macro",
 ]
 
 [[package]]
 name = "spring-boot"
 version = "0.1.0"
+dependencies = [
+ "inventory",
+ "spring-beans",
+ "spring-context",
+ "spring-macro",
+]
 
 [[package]]
 name = "spring-context"
@@ -81,7 +97,7 @@ version = "0.1.0"
 name = "spring-macro"
 version = "0.1.0"
 dependencies = [
- "ctor",
+ "inventory",
  "proc-macro2",
  "quote",
  "spring-util",

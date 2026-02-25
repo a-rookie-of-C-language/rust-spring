@@ -1,63 +1,37 @@
-pub struct Application{
-    shutdown_hook: SpringApplicationShutdownHook,
-    primary_sources: Vec<TypeId>,
-    sources: Vec<String>,
-    main_application_class:  TypeId,
-    resource_loader: ResourceLoader,
-    bean_name_generator: BeanNameGenerator,
-    envrionment: ConfigurableEnvironment,
-    initializers: Vec<ApplicationContextInitializer>,
-    listeners: Vec<ApplicationListener>,
-    default_properties: HashMap<String,String>,
-    bootstrap_registry_initializers: Vec<BootstrapRegistryInitializer>,
-    additional_profiles: Vec<String>,
-    application_context_factory: ApplicationContextFactory,
-    application_startup: ApplicationStartup,
-}
+use spring_beans::factory::BeanDefinitionRegistry;
+use spring_beans::env::{Environment, PropertiesLoader, MapPropertySource};
+use spring_context::context::support::AbstractApplicationContext;
+use spring_context::context::ConfigurableApplicationContext;
+use spring_beans::bean::bean_post_processor::DefaultBeanPostProcessor;
 
+/// Spring Boot 应用入口，对标 Java 的 SpringApplication。
+pub struct Application;
 
-impl Application{
-    fn new(resource_loader: ResourceLoader,primary_sources: Vec<TypeId>) -> Self{
-        self{
-            shutdown_hook: SpringApplicationShutdownHook::new(),
-            primary_sources,
-            sources: Vec::new(),
-            main_application_class: TypeId::of::<()>(),
-            resource_loader,
-            bean_name_generator: DefaultBeanNameGenerator::new(),
-            envrionment: StandardEnvironment::new(),
-            initializers: Vec::new(),
-            listeners: Vec::new(),
-            default_properties: HashMap::new(),
-            bootstrap_registry_initializers:Vec::new(),
-            additional_profiles:Vec::new(),
-            application_context_factory: DefaultApplicationContextFactory::new(),
-            application_startup: DefaultApplicationStartup::new(),
+impl Application {
+    /// 自动扫描所有 #[Component] bean，注册到容器，refresh 后返回。
+    /// 对标 Java 的 SpringApplication.run()。
+    pub fn run() -> AbstractApplicationContext {
+        let mut context = AbstractApplicationContext::default();
+
+        // 遍历所有通过 inventory::submit! 注册的 BeanRegistration
+        for registration in inventory::iter::<spring_beans::registry::BeanRegistration> {
+            let definition = (registration.definition)();
+            let name = definition.get_name().to_string();
+            context.register_bean_definition(&name, Box::new(definition));
         }
-    }
 
-    pub fn run(&mut self,args: Vec<String>)->ConfigurableApplicationContext{
-        let startTime: i64 = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64;
-
-        let default_bootstrap_context = self.create_bootstrap_context();
-    }
-
-    fn create_bootstrap_context(&self)->DefaultBootstrapContext{
-        let default = DefaultBootstrapContext::new();
-        self.bootstrap_registry_initializers.iter().for_each(|initializer|{
-            initializer.initialize(&default);
-        });
-        default
-    }
-
-    fn refresh_context(&self,context: &mut ConfigurableApplicationContext){
-        if self.shutdown_hook.is_registered() == false{
-            self.shutdown_hook.register(context);
+        // 加载 application.properties（当前目录查找，缺失则忽略）
+        let mut environment = Environment::new();
+        if let Ok(props) = PropertiesLoader::load("application.properties") {
+            let source = MapPropertySource::new("application.properties", props);
+            environment.merge_from(&source);
         }
-        self::refresh(context);
-    }
+        context.set_environment(environment);
 
+        // 注册默认的 BeanPostProcessor
+        context.register_post_processor(Box::new(DefaultBeanPostProcessor {}));
+
+        context.refresh();
+        context
+    }
 }

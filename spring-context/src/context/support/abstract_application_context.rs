@@ -99,3 +99,11 @@ impl Default for AbstractApplicationContext {
         }
     }
 }
+impl AbstractApplicationContext {
+    pub fn register_post_processor(&mut self, processor: Box<dyn spring_beans::bean::bean_post_processor::BeanPostProcessor>) {
+        self.bean_factory.register_post_processor(processor);
+    }
+    pub fn set_environment(&mut self, environment: spring_beans::env::Environment) {
+        self.bean_factory.set_environment(environment);
+    }
+}

@@ -1,0 +1,10 @@
+[package]
+name = "initializer"
+version.workspace = true
+edition.workspace = true
+description = "rust-spring project initializer — generates a minimal runnable demo"
+license.workspace = true
+
+[[bin]]
+name = "initializer"
+path = "src/main.rs"

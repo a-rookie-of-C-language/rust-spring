@@ -8,3 +8,4 @@ license.workspace = true
 
 [dependencies]
 spring-macro = {path = "../spring-macro"}
+inventory = { workspace = true }

@@ -9,6 +9,6 @@ license.workspace = true
 [dependencies]
 spring-macro = { path = "../spring-macro" }
 spring-beans = { path = "../spring-beans" }
-spring-core = { path = "../spring-core" }
+spring-boot = { path = "../spring-boot" }
 spring-context = { path = "../spring-context" }
-ctor = "0.2"
+inventory = { workspace = true }
