@@ -53,6 +53,9 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 [[package]]
 name = "spring-aop"
 version = "0.1.0"
+dependencies = [
+ "inventory",
+]
 
 [[package]]
 name = "spring-beans"
@@ -67,6 +70,7 @@ name = "spring-boot"
 version = "0.1.0"
 dependencies = [
  "inventory",
+ "spring-aop",
  "spring-beans",
  "spring-context",
  "spring-macro",
@@ -100,6 +104,7 @@ dependencies = [
  "inventory",
  "proc-macro2",
  "quote",
+ "spring-aop",
  "spring-util",
  "syn",
 ]

@@ -9,6 +9,7 @@ mod setter;
 mod accessors;
 mod no_arg_constructor;
 mod all_args_constructor;
+mod aspect;
 #[proc_macro_attribute]
 pub fn component(attribute: TokenStream, item: TokenStream) -> TokenStream {
     component::component_impl(attribute, item)
@@ -81,4 +82,32 @@ pub fn no_arg_constructor(attribute: TokenStream, item: TokenStream) -> TokenStr
 #[proc_macro_attribute]
 pub fn all_args_constructor(attribute: TokenStream, item: TokenStream) -> TokenStream {
     all_args_constructor::all_args_constructor_impl(attribute, item)
+}
+
+/// #[Aspect] —— Marks a struct as an aspect container (pass-through).
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn Aspect(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    aspect::aspect_impl(attribute, item)
+}
+
+/// #[Before("beanName::methodName")] —— registers a Before advice.
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn Before(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    aspect::before_impl(attribute, item)
+}
+
+/// #[After("beanName::methodName")] —— registers an After advice.
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn After(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    aspect::after_impl(attribute, item)
+}
+
+/// #[Around("beanName::methodName")] —— registers an Around (before+after) advice.
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn Around(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    aspect::around_impl(attribute, item)
 }

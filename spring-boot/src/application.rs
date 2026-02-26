@@ -3,6 +3,7 @@ use spring_beans::env::{Environment, PropertiesLoader, MapPropertySource};
 use spring_context::context::support::AbstractApplicationContext;
 use spring_context::context::ConfigurableApplicationContext;
 use spring_beans::bean::bean_post_processor::DefaultBeanPostProcessor;
+use spring_aop::initialize_aop;
 
 /// Spring Boot 应用入口，对标 Java 的 SpringApplication。
 pub struct Application;
@@ -30,6 +31,9 @@ impl Application {
 
         // 注册默认的 BeanPostProcessor
         context.register_post_processor(Box::new(DefaultBeanPostProcessor {}));
+
+        // 初始化 AOP：将所有 inventory 提交的 AspectRegistration 转为 Advisor
+        initialize_aop();
 
         context.refresh();
         context

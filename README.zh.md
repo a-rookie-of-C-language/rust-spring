@@ -1,8 +1,6 @@
 # rust-spring
 
 > 用 Rust 复刻 Spring Framework 核心——注解驱动的 IoC 容器、依赖注入，以及 Spring Boot 风格的自动配置。不支持 XML，只用注解。
-
-[![CI](https://github.com/arookieofc/rust-spring/actions/workflows/ci.yml/badge.svg)](https://github.com/arookieofc/rust-spring/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2021_edition-orange.svg)](https://www.rust-lang.org)
 

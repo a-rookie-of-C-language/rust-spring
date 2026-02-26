@@ -1,8 +1,6 @@
 # rust-spring
 
 > A Rust re-implementation of the Spring Framework core — annotation-driven IoC container, dependency injection, and Spring Boot-style auto-configuration. No XML. Just annotations.
-
-[![CI](https://github.com/arookieofc/rust-spring/actions/workflows/ci.yml/badge.svg)](https://github.com/arookieofc/rust-spring/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2021_edition-orange.svg)](https://www.rust-lang.org)
 

@@ -11,3 +11,4 @@ spring-context = { path = "../spring-context" }
 spring-beans   = { path = "../spring-beans"   }
 spring-macro   = { path = "../spring-macro"   }
 inventory      = { workspace = true }
+spring-aop     = { path = "../spring-aop"     }

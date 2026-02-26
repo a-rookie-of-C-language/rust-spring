@@ -1,4 +1,4 @@
-use spring_boot::{Application, ApplicationContext, Bean, Component, Lazy, Scope, Value};
+use spring_boot::{Application, ApplicationContext, Aspect, Bean, Before, After, Around, Component, JoinPoint, AopProxyRegistry, Lazy, Scope, Value};
 
 // ── 基础 bean ──────────────────────────────────────────────────────────────────
 
@@ -73,6 +73,57 @@ struct ServerConfig {
     max_connections: u32,
 }
 
+
+// ── AOP 切面演示 ────────────────────────────────────────────────────────────────
+//
+// OrderService: 被拦截的 bean
+
+#[Component]
+#[derive(Debug, Default, Clone)]
+struct OrderService {
+    order_count: u32,
+}
+
+impl OrderService {
+    /// 下单方法 —— 由 LogAspect 进行 Before / After 拦截。
+    pub fn place_order(&self, item: &str) {
+        // 在方法体开始时通知 Before advice
+        AopProxyRegistry::fire_before("orderService", "place_order");
+        println!("[OrderService] placing order for: {}", item);
+        // 在方法体结束时通知 After advice
+        AopProxyRegistry::fire_after("orderService", "place_order");
+    }
+}
+
+// LogAspect: 切面类（用于标识切面——提示性）
+#[Aspect]
+struct LogAspect;
+
+// 切面函数必须是模块级别的独立函数（非 impl 方法）
+#[Before("orderService::place_order")]
+fn log_before(jp: &JoinPoint) {
+    println!(
+        "[AOP][Before]  {}.{}() is about to execute",
+        jp.bean_name, jp.method_name
+    );
+}
+
+#[After("orderService::place_order")]
+fn log_after(jp: &JoinPoint) {
+    println!(
+        "[AOP][After]   {}.{}() has finished",
+        jp.bean_name, jp.method_name
+    );
+}
+
+#[Around("orderService::place_order")]
+fn log_around(jp: &JoinPoint) {
+    // Around fires on both sides (before via fire_before, after via fire_after).
+    println!(
+        "[AOP][Around]  intercepting {}.{}()",
+        jp.bean_name, jp.method_name
+    );
+}
 // ── main ──────────────────────────────────────────────────────────────────────
 
 fn main() {
@@ -120,6 +171,14 @@ fn main() {
     if let Some(bean) = context.get_bean("serverConfig") {
         if let Some(cfg) = bean.downcast_ref::<ServerConfig>() {
             println!("[Value]      serverConfig: {:?}", cfg);
+        }
+    }
+
+    // 7. AOP 切面拦截演示
+    if let Some(bean) = context.get_bean("orderService") {
+        if let Some(svc) = bean.downcast_ref::<OrderService>() {
+            println!("\n[AOP] Calling orderService.place_order(\"laptop\")...");
+            svc.place_order("laptop");
         }
     }
 }
