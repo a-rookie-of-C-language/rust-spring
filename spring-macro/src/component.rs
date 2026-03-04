@@ -51,6 +51,16 @@ pub fn component_impl(attribute: TokenStream, item: TokenStream) -> TokenStream 
     let inject_stmts = build_inject_stmts(&input);
     let value_inject_stmts = build_value_inject_stmts(&input);
 
+    // 读取 #[ConditionalOnProperty("key", having = "value")] 条件
+    let condition_token = match extract_conditional_attr(&input.attrs) {
+        Some((key, val)) => {
+            let k = LitStr::new(&key, Span::call_site());
+            let v = LitStr::new(&val, Span::call_site());
+            quote! { Some((#k.to_string(), #v.to_string())) }
+        }
+        None => quote! { None },
+    };
+
     // 剥离 struct 字段上的 #[autowired] 属性，避免编译器找不到该 helper attribute
     let clean_input = strip_helper_attrs(input.clone());
     let expanded = quote! {
@@ -73,6 +83,7 @@ pub fn component_impl(attribute: TokenStream, item: TokenStream) -> TokenStream 
                         #(#value_inject_stmts)*
                         Box::new(instance) as Box<dyn std::any::Any>
                     }),
+                    #condition_token,
                 )
             }
         }
@@ -121,6 +132,7 @@ pub fn component_derive_impl(item: TokenStream) -> TokenStream {
                         #(#value_inject_stmts)*
                         Box::new(instance) as Box<dyn std::any::Any>
                     }),
+                    None,
                 )
             }
         }
@@ -202,7 +214,31 @@ fn build_value_inject_stmts(input: &ItemStruct) -> Vec<proc_macro2::TokenStream>
         .into_iter()
         .map(|(field_ident, placeholder, field_ty)| {
             let placeholder_lit = LitStr::new(&placeholder, Span::call_site());
-            // Extract key and default from "${key:default}" or "${key}"
+
+            // ── SpEL path: #{expr} ──────────────────────────────────────
+            if let Some(spel_expr) = placeholder
+                .strip_prefix("#{")
+                .and_then(|s| s.strip_suffix('}'))
+            {
+                let spel_lit = LitStr::new(spel_expr.trim(), Span::call_site());
+                return quote! {
+                    instance.#field_ident = {
+                        let _raw = spring_boot::spel::eval(#spel_lit, env)
+                            .unwrap_or_else(|e| panic!(
+                                "#[Value] SpEL evaluation failed for expression '{}': {}",
+                                #spel_lit, e
+                            ));
+                        _raw.parse().unwrap_or_else(|_| panic!(
+                            "#[Value] failed to parse SpEL result '{}' (expression '{}') as {}",
+                            _raw,
+                            #spel_lit,
+                            stringify!(#field_ty)
+                        ))
+                    };
+                };
+            }
+
+            // ── property placeholder path: ${key:default} ───────────────
             let (key, default_val) = parse_placeholder(&placeholder);
             let key_lit = LitStr::new(&key, Span::call_site());
             let default_lit = LitStr::new(&default_val, Span::call_site());
@@ -354,7 +390,7 @@ fn lowercase_first(raw: &str) -> String {
 }
 
 
-/// 同时剥离 struct 字段上的 #[autowired] 和 struct 上的 #[Scope] / #[Lazy]
+/// 同时剥离 struct 字段上的 #[autowired] 和 struct 上的 #[Scope] / #[Lazy] / #[ConditionalOnProperty]
 fn strip_helper_attrs(mut input: ItemStruct) -> ItemStruct {
     // 剥离 struct-level helper attrs
     input.attrs.retain(|attr| {
@@ -362,6 +398,7 @@ fn strip_helper_attrs(mut input: ItemStruct) -> ItemStruct {
             && !attr.path().is_ident("scope")
             && !attr.path().is_ident("Lazy")
             && !attr.path().is_ident("lazy")
+            && !attr.path().is_ident("ConditionalOnProperty")
     });
     // 剥离字段上的 #[autowired]
     if let Fields::Named(ref mut fields) = input.fields {
@@ -394,6 +431,44 @@ fn extract_lazy_attr(attrs: &[Attribute]) -> Option<bool> {
                 return Some(lit.value());
             }
             return Some(true);
+        }
+    }
+    None
+}
+
+/// 从 struct-level attrs 中读取 #[ConditionalOnProperty("key", having = "value")]
+/// 支持两种语法：
+///   1. `#[ConditionalOnProperty("key")]`            → 匹配值默认为 "true"
+///   2. `#[ConditionalOnProperty("key", having = "value")]` → 匹配指定值
+fn extract_conditional_attr(attrs: &[Attribute]) -> Option<(String, String)> {
+    for attr in attrs {
+        if attr.path().is_ident("ConditionalOnProperty") {
+            let mut key = String::new();
+            let mut having = "true".to_string();
+
+            // 用自定义解析器: 先读第一个 LitStr（key），再读可选的 , having = "..."
+            let parser = |input: syn::parse::ParseStream| -> syn::Result<()> {
+                // 第一个位置参数: property key
+                let lit: LitStr = input.parse()?;
+                key = lit.value();
+                // 可选的命名参数
+                while input.peek(syn::Token![,]) {
+                    let _comma: syn::Token![,] = input.parse()?;
+                    if input.is_empty() { break; }
+                    let ident: Ident = input.parse()?;
+                    let _eq: syn::Token![=] = input.parse()?;
+                    if ident == "having" {
+                        let val: LitStr = input.parse()?;
+                        having = val.value();
+                    }
+                }
+                Ok(())
+            };
+            let _ = attr.parse_args_with(parser);
+
+            if !key.is_empty() {
+                return Some((key, having));
+            }
         }
     }
     None

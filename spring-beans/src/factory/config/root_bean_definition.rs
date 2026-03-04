@@ -11,6 +11,9 @@ pub struct RootBeanDefinition {
     is_lazy: bool,
     dependencies: Vec<String>,
     supplier: Box<dyn Fn(&std::collections::HashMap<String, Box<dyn Any>>, &std::collections::HashMap<String, String>) -> Box<dyn Any>>,
+    /// Optional `(property_key, expected_value)` condition.
+    /// Set by `#[ConditionalOnProperty("key", having = "value")]`.
+    condition: Option<(String, String)>,
 }
 
 
@@ -49,5 +52,11 @@ impl BeanDefinition for RootBeanDefinition {
 
     fn get_dependencies(&self) -> Vec<String> {
         self.dependencies.clone()
+    }
+
+    fn get_condition(&self) -> Option<(&str, &str)> {
+        self.condition
+            .as_ref()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
     }
 }

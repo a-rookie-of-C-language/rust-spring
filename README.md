@@ -245,11 +245,11 @@ Expected output:
 - [x] `#[autowired]` field injection
 - [x] `#[Bean]` factory functions
 - [x] `#[Value]` property injection from `application.properties`
-- [ ] AOP (aspect-oriented programming)
-- [ ] SpEL-style expression language
-- [ ] Conditional beans (`#[ConditionalOnProperty]`)
-- [ ] Spring Data-style repository abstraction
-- [ ] HTTP layer (Actix/Axum integration)
+- [x] AOP (aspect-oriented programming)
+- [x] SpEL-style expression language
+- [x] Conditional beans (`#[ConditionalOnProperty]`)
+- [x] Spring Data-style repository abstraction
+- [x] HTTP layer (Actix/Axum integration)
 
 ---
 

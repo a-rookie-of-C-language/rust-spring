@@ -6,7 +6,7 @@ pub use aspect::advice::{Advice, AdviceKind, JoinPoint};
 pub use aspect::advisor::Advisor;
 pub use aspect::pointcut::Pointcut;
 pub use framework::aop_config::AopConfig;
-pub use proxy::aop_proxy::AopProxyRegistry;
+pub use proxy::aop_proxy::{AopGuard, AopProxyRegistry};
 
 // ── Inventory-based aspect registration ────────────────────────────────────
 

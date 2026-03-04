@@ -9,6 +9,8 @@ members = [
     "spring-util", 
     "spring-macro",
     "spring-boot",
+    "spring-data",
+    "spring-web",
     "example",
     "initializer",
 ]

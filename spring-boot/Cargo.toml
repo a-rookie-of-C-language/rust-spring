@@ -7,8 +7,11 @@ description.workspace = true
 license.workspace = true
 
 [dependencies]
-spring-context = { path = "../spring-context" }
-spring-beans   = { path = "../spring-beans"   }
-spring-macro   = { path = "../spring-macro"   }
-inventory      = { workspace = true }
-spring-aop     = { path = "../spring-aop"     }
+spring-context    = { path = "../spring-context" }
+spring-beans      = { path = "../spring-beans"   }
+spring-macro      = { path = "../spring-macro"   }
+inventory         = { workspace = true }
+spring-aop        = { path = "../spring-aop"     }
+spring-expression = { path = "../spring-expression" }
+spring-data       = { path = "../spring-data"    }
+spring-web        = { path = "../spring-web"     }

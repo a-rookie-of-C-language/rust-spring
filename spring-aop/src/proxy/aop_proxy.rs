@@ -84,3 +84,34 @@ impl AopProxyRegistry {
             .any(|a| a.pointcut.bean_name == bean_name)
     }
 }
+
+// ── AopGuard ─────────────────────────────────────────────────────────────────
+
+/// RAII guard: calls `fire_after` automatically when it goes out of scope.
+///
+/// Used by the `#[AopMethods]` proc-macro so that `fire_after` is triggered
+/// whether the wrapped method returns normally **or** via an early `return`.
+///
+/// ```rust,ignore
+/// pub fn place_order(&self, item: &str) {
+///     AopProxyRegistry::fire_before("orderService", "place_order");
+///     let _guard = AopGuard::new("orderService", "place_order");
+///     // original body …
+/// }  // ← _guard drops here → fire_after called automatically
+/// ```
+pub struct AopGuard {
+    bean_name: &'static str,
+    method_name: &'static str,
+}
+
+impl AopGuard {
+    pub fn new(bean_name: &'static str, method_name: &'static str) -> Self {
+        AopGuard { bean_name, method_name }
+    }
+}
+
+impl Drop for AopGuard {
+    fn drop(&mut self) {
+        AopProxyRegistry::fire_after(self.bean_name, self.method_name);
+    }
+}

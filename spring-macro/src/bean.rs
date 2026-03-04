@@ -67,6 +67,7 @@ pub fn bean_impl(attribute: TokenStream, item: TokenStream) -> TokenStream {
                             let instance = #fn_ident();
                             Box::new(instance) as Box<dyn std::any::Any>
                         }),
+                        None,
                     )
                 },
             }

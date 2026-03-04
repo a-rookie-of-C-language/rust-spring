@@ -245,11 +245,11 @@ cargo run -p example
 - [x] `#[autowired]` 字段注入
 - [x] `#[Bean]` 工厂函数
 - [x] `#[Value]` 从 `application.properties` 注入配置
-- [ ] AOP（面向切面编程）
-- [ ] SpEL 风格表达式语言
-- [ ] 条件 bean（`#[ConditionalOnProperty]`）
-- [ ] Spring Data 风格 Repository 抽象
-- [ ] HTTP 层（Actix / Axum 集成）
+- [x] AOP（面向切面编程）
+- [x] SpEL 风格表达式语言
+- [x] 条件 bean（`#[ConditionalOnProperty]`）
+- [x] Spring Data 风格 Repository 抽象
+- [x] HTTP 层（Actix / Axum 集成）
 
 ---
 

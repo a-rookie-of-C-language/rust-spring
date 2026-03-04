@@ -14,4 +14,10 @@ pub trait BeanDefinition {
     fn has_annotation(&self, annotation: &str) -> bool;
     fn create_instance(&self, resolved_deps: &std::collections::HashMap<String, Box<dyn std::any::Any>>, env: &std::collections::HashMap<String, String>) -> Box<dyn std::any::Any>;
     fn get_dependencies(&self) -> Vec<String>;
+
+    /// Returns the `(property_key, expected_value)` condition for this bean,
+    /// or `None` if the bean is unconditional.
+    fn get_condition(&self) -> Option<(&str, &str)> {
+        None
+    }
 }

@@ -73,7 +73,10 @@ dependencies = [
  "spring-aop",
  "spring-beans",
  "spring-context",
+ "spring-data",
+ "spring-expression",
  "spring-macro",
+ "spring-web",
 ]
 
 [[package]]
@@ -94,6 +97,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "spring-data"
+version = "0.1.0"
+
+[[package]]
 name = "spring-expression"
 version = "0.1.0"
 
@@ -112,6 +119,14 @@ dependencies = [
 [[package]]
 name = "spring-util"
 version = "0.1.0"
+
+[[package]]
+name = "spring-web"
+version = "0.1.0"
+dependencies = [
+ "inventory",
+ "spring-context",
+]
 
 [[package]]
 name = "syn"

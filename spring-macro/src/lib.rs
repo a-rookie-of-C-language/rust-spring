@@ -10,6 +10,9 @@ mod accessors;
 mod no_arg_constructor;
 mod all_args_constructor;
 mod aspect;
+mod aop_methods;
+mod repository;
+mod web;
 #[proc_macro_attribute]
 pub fn component(attribute: TokenStream, item: TokenStream) -> TokenStream {
     component::component_impl(attribute, item)
@@ -110,4 +113,73 @@ pub fn After(attribute: TokenStream, item: TokenStream) -> TokenStream {
 #[allow(non_snake_case)]
 pub fn Around(attribute: TokenStream, item: TokenStream) -> TokenStream {
     aspect::around_impl(attribute, item)
+}
+
+/// #[AopMethods] —— Apply to an `impl` block to automatically weave AOP into
+/// every `pub fn` that takes `&self` / `&mut self`.
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn AopMethods(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    aop_methods::aop_methods_impl(attribute, item)
+}
+
+/// #[ConditionalOnProperty("key", having = "value")] —— the bean is only registered
+/// when `application.properties` contains `key=value`.
+///
+/// `having` is optional and defaults to `"true"` when omitted.
+/// This is a helper attribute; the real logic is handled by `#[Component]`.
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn ConditionalOnProperty(_attribute: TokenStream, item: TokenStream) -> TokenStream {
+    item
+}
+
+/// #[Repository(User)] / #[Repository(entity = "User")]
+/// 标注在空 struct 上，自动生成内存 CRUD 方法并注册为 IoC bean。
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn Repository(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    repository::repository_impl(attribute, item)
+}
+
+/// #[RestController] —— 标记 struct 为 REST 控制器（透传，实际注册由 #[Component] 处理）
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn RestController(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    web::rest_controller_impl(attribute, item)
+}
+
+/// #[GetMapping("/path")] —— 注册 GET 路由
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn GetMapping(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    web::get_mapping_impl(attribute, item)
+}
+
+/// #[PostMapping("/path")] —— 注册 POST 路由
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn PostMapping(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    web::post_mapping_impl(attribute, item)
+}
+
+/// #[PutMapping("/path")] —— 注册 PUT 路由
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn PutMapping(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    web::put_mapping_impl(attribute, item)
+}
+
+/// #[DeleteMapping("/path")] —— 注册 DELETE 路由
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn DeleteMapping(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    web::delete_mapping_impl(attribute, item)
+}
+
+/// #[PatchMapping("/path")] —— 注册 PATCH 路由
+#[proc_macro_attribute]
+#[allow(non_snake_case)]
+pub fn PatchMapping(attribute: TokenStream, item: TokenStream) -> TokenStream {
+    web::patch_mapping_impl(attribute, item)
 }
